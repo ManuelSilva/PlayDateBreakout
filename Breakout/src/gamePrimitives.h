@@ -100,6 +100,8 @@ void renderArrow(PlaydateAPI* pd, Camera* camera, Vec2 location, Vec2 vectorToDr
 
 void renderPoint(PlaydateAPI* pd, Camera* camera, Point* point)
 {
+	// used to debug velocity
+#if _DEBUG
 	if (vec2LenSquared(point->velocity) > 3.0f)
 	{
 		Vec2 amplifiedSpeedForDebug;
@@ -107,6 +109,7 @@ void renderPoint(PlaydateAPI* pd, Camera* camera, Point* point)
 		vec2Add(point->position, point->velocity, &amplifiedSpeedForDebug);
 		renderArrow(pd, camera, point->position, amplifiedSpeedForDebug);
 	}
+#endif
 
 	msgfx_fillEllipseArgs args =
 	{

@@ -4,13 +4,20 @@
 #define NUMBER_OF_BREAKABLES_Y 8
 #define NUMBER_OF_BREAKABLES_TOTAL NUMBER_OF_BREAKABLES_X * NUMBER_OF_BREAKABLES_Y
 #define MAX_VELOCITY 90
+#define TRAIL_SIZE 5
+#define TRAIL_REFRESH 3
+
 
 typedef struct GameScene
 {
 	Camera camera;
 
-	Point pointA;
+	Point ball;
 	Rect paddle;
+
+	int trailTicks;
+	int currentIndexToUpdate;
+	Point trail[TRAIL_SIZE];
 
 	Rect breakables[NUMBER_OF_BREAKABLES_TOTAL];
 	Collision WallCollisions[NUMBER_OF_WALL_COLLISIONS];
@@ -29,11 +36,22 @@ __declspec(dllexport)
 void initializeScene()
 {
 	// Init scene
-	_GameScene.pointA = _Point_Default;
-	_GameScene.pointA.position.y = -85;
-	_GameScene.pointA.velocity.y = 25;
-	_GameScene.pointA.velocity.x = 20;
-	_GameScene.pointA.radius = 3;
+	_GameScene.ball = _Point_Default;
+	_GameScene.ball.position.y = -85;
+	_GameScene.ball.velocity.y = 25;
+	_GameScene.ball.velocity.x = 20;
+	_GameScene.ball.radius = 3;
+
+	_GameScene.trailTicks = TRAIL_REFRESH;
+	_GameScene.currentIndexToUpdate = 0;
+	for(int i = 0; i < TRAIL_SIZE; ++i)
+	{
+		_GameScene.trail[i] = _GameScene.ball;
+		_GameScene.trail[i].position.x = -1000;
+		_GameScene.trail[i].velocity.x = 0;
+		_GameScene.trail[i].velocity.y = 0;
+		_GameScene.trail[i].radius = 1;
+	}
 
 	_GameScene.paddle.center = VEC2(0, -90);
 	_GameScene.paddle.size = VEC2(35, 6);
@@ -111,7 +129,7 @@ static int update(void* userdata)
 
 	PlaydateAPI* pd = userdata;
 
-	Point* point = &_GameScene.pointA;
+	Point* ball = &_GameScene.ball;
 	Rect* paddle = &_GameScene.paddle;
 
 
@@ -131,8 +149,20 @@ static int update(void* userdata)
 	}
 
 
-	eulerIntegration(point, dt);
-	updateWallCollisions(_GameScene.WallCollisions, point, dt);
+	_GameScene.trailTicks--;
+	if(_GameScene.trailTicks == 0)
+	{
+		_GameScene.trailTicks = TRAIL_REFRESH;
+		_GameScene.trail[_GameScene.currentIndexToUpdate].position = ball->position;
+		_GameScene.currentIndexToUpdate++;
+		if(_GameScene.currentIndexToUpdate >= TRAIL_SIZE)
+		{
+			_GameScene.currentIndexToUpdate = 0;
+		}
+	}
+
+	eulerIntegration(ball, dt);
+	updateWallCollisions(_GameScene.WallCollisions, ball, dt);
 
 	Collision collision;
 	for (int i = 0; i < NUMBER_OF_BREAKABLES_TOTAL; ++i)
@@ -144,19 +174,19 @@ static int update(void* userdata)
 		}
 
 
-		if (findPointRectCollision(*point, _GameScene.breakables[i], &collision))
+		if (findPointRectCollision(*ball, _GameScene.breakables[i], &collision))
 		{
 			{
 				_GameScene.breakables[i].center = VEC2(10000, 0);
 				// resolve the constraint
-				point->position = collision.position;
+				ball->position = collision.position;
 			}
 
 			// compute the normal & tangential velocity
 			Vec2 normalVelocity;
-			vec2MulScalar(collision.normal, vec2Dot(collision.normal, point->velocity), &normalVelocity);
+			vec2MulScalar(collision.normal, vec2Dot(collision.normal, ball->velocity), &normalVelocity);
 			Vec2 tangentialVelocity;
-			vec2Sub(point->velocity, normalVelocity, &tangentialVelocity);
+			vec2Sub(ball->velocity, normalVelocity, &tangentialVelocity);
 
 			float elasticity = 1.03f;
 
@@ -164,16 +194,16 @@ static int update(void* userdata)
 			vec2MulScalar(normalVelocity, -elasticity, &normalVelocity);
 
 			// add up the new velocity
-			vec2Add(normalVelocity, tangentialVelocity, &point->velocity);
+			vec2Add(normalVelocity, tangentialVelocity, &ball->velocity);
 		}
 	}
 
 
-	if (findPointRectCollision(*point, *paddle, &collision))
+	if (findPointRectCollision(*ball, *paddle, &collision))
 	{
 		{
 			// resolve the constraint
-			point->position = collision.position;
+			ball->position = collision.position;
 		}
 
 		Vec2 temp;
@@ -186,9 +216,9 @@ static int update(void* userdata)
 
 		// compute the normal & tangential velocity
 		Vec2 normalVelocity;
-		vec2MulScalar(collision.normal, vec2Dot(collision.normal, point->velocity), &normalVelocity);
+		vec2MulScalar(collision.normal, vec2Dot(collision.normal, ball->velocity), &normalVelocity);
 		Vec2 tangentialVelocity;
-		vec2Sub(point->velocity, normalVelocity, &tangentialVelocity);
+		vec2Sub(ball->velocity, normalVelocity, &tangentialVelocity);
 
 		float elasticity = 1.0f;
 
@@ -201,7 +231,7 @@ static int update(void* userdata)
 		//vec2MulScalar(tangentialVelocity, frictionDelta, &tangentialVelocity);
 
 		// add up the new velocity
-		vec2Add(normalVelocity, tangentialVelocity, &point->velocity);
+		vec2Add(normalVelocity, tangentialVelocity, &ball->velocity);
 	}
 
 	// render
@@ -226,8 +256,14 @@ static int update(void* userdata)
 	//msgfx_drawLine(pd, &_GameScene.camera, arg1);
 	//msgfx_drawLine(pd, &_GameScene.camera, arg2);
 
-	renderPoint(pd, &_GameScene.camera, &_GameScene.pointA);
+	for (int i = 0; i < TRAIL_SIZE; i++)
+	{
+		renderPoint(pd, &_GameScene.camera, &_GameScene.trail[i]);
+	}
+
+	renderPoint(pd, &_GameScene.camera, &_GameScene.ball);
 	renderRect(pd, &_GameScene.camera, &_GameScene.paddle);
+
 
 
 	for (int i = 0; i < NUMBER_OF_BREAKABLES_TOTAL; ++i)
@@ -235,15 +271,15 @@ static int update(void* userdata)
 		renderRect(pd, &_GameScene.camera, &_GameScene.breakables[i]);
 	}
 
-	if (point->position.y < -300)
+	if (ball->position.y < -300)
 	{
 		initializeScene();
 	}
 
-	if (vec2Len(point->velocity) > MAX_VELOCITY)
+	if (vec2Len(ball->velocity) > MAX_VELOCITY)
 	{
-		vec2Normalize(&point->velocity);
-		vec2MulScalar(point->velocity, MAX_VELOCITY, &point->velocity);
+		vec2Normalize(&ball->velocity);
+		vec2MulScalar(ball->velocity, MAX_VELOCITY, &ball->velocity);
 	}
 
 	//pd->system->drawFPS(0, 0);
