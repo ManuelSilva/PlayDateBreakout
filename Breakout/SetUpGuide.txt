@@ -1,0 +1,19 @@
+Instruction how to set up a new PlayDate C Project
+	1 copy template and rename new folder to project name
+	2 open x64 Native Tools Command Prompt for VS 2019 Terminal
+	3 rename CMakeLists with new project name near the comment -> # Game Name Customization
+	4 use cd to get the terminal to the new folder
+	5 run cmake .
+	6 open new sln with visual studio
+	7 set projectName project as the start up project
+	8 build debug and release
+	9 close visual studio
+	10 delete CMakeCache.txt and CMakeFiles folder
+	11 use cd go with terminal to project/build folder
+	12 run cmake .. -G "NMake Makefiles" --toolchain="YOUR_PATH_HERE\PlaydateSDK\C_API\buildsupport\arm.cmake"
+	12 run nmake
+	13 move generated files to projectName.pdx folder
+	14 move files to the playdate using cable and the simulator
+
+repeat 12, 13 and 14 everytime you want to make a new build for the playdate
+move 
