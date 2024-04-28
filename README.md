@@ -13,6 +13,16 @@ This project can serve as an easy Hello World like template for creating other g
 
 \*There is no ending in the game, game just restarts on loss for now.
 
+
+## Installation
+
+To install the game on your Playdate console, follow these steps:
+
+1. Download the latest release of the game from the [Releases](https://github.com/ManuelSilva/PlayDateBreakout/releases/tag/pdx_release) section.
+2. Connect your Playdate console to your computer via USB.
+3. Use the Playdate software to sideload the game onto your console.
+4. Disconnect the USB and launch the game from the Playdate menu.
+
 ## Resources
 
 If you re interested in making games for the Playdate in C.
