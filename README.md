@@ -1,11 +1,11 @@
 # Playdate Breakout by Manuel Silva
 
-![Breakout Clone Screenshot](./Breakout.gif)
-
 Ive been playing around with making game on the Playdate with C.
 Sharing this since I'm noticing there are not many resources out there for people programming in C for the playdate.
 
 This project can serve as an easy Hello World like template for creating other games.
+
+![Breakout Clone Screenshot](./Breakout.gif)
 
 ## Controls
 
@@ -23,8 +23,8 @@ Check this links out.
  - https://devforum.play.date/t/c-template-setup-on-windows-2023/12819/5
  - https://github.com/srburk/Playdate-C-Template
 
-also if you're stuck I added a couple of tricky set up steps explained step by step here LINK_HERE
+also if you're stuck I added a couple of tricky set up steps explained step by step here [Link](https://github.com/ManuelSilva/PlayDateBreakout/blob/main/Breakout/SetUpGuide.txt)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](link/to/license) file for more details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/ManuelSilva/PlayDateBreakout/blob/main/LICENSE) file for more details.
